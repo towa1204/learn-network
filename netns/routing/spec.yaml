@@ -1,0 +1,35 @@
+nodes:
+- name: H0
+  type: netns
+  interfaces:
+    - { name: net0, type: direct, args: R0#net0 }
+- name: H1
+  type: netns
+  interfaces:
+    - { name: net0, type: direct, args: R0#net1 }
+- name: R0
+  type: netns
+  interfaces:
+    - { name: net0, type: direct, args: H0#net0 }
+    - { name: net1, type: direct, args: H1#net0 }
+
+
+node_configs:
+- name: H0
+  cmds:
+  - cmd: ip addr add 192.168.1.1/24 dev net0
+  - cmd: ip route add default via 192.168.1.254
+- name: H1
+  cmds:
+  - cmd: ip addr add 192.168.2.1/24 dev net0
+  - cmd: ip route add default via 192.168.2.254
+- name: R0
+  cmds:
+  - cmd: ip addr add 192.168.1.254/24 dev net0
+  - cmd: ip addr add 192.168.2.254/24 dev net1
+  sysctls:
+  - sysctl: net.ipv4.ip_forward=1
+test:
+  cmds:
+  - cmd: ip netns exec H0 ping -c 3 192.168.2.1
+  - cmd: ip netns exec H1 ping -c 3 192.168.1.1

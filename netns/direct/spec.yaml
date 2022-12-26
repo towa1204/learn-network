@@ -1,0 +1,22 @@
+nodes:
+- name: H0
+  type: netns
+  interfaces:
+    - { name: net0, type: direct, args: H1#net0 }
+- name: H1
+  type: netns
+  interfaces:
+    - { name: net0, type: direct, args: H0#net0 }
+
+node_configs:
+- name: H0
+  cmds:
+  - cmd: ip addr add 192.168.1.1/24 dev net0
+- name: H1
+  cmds:
+  - cmd: ip addr add 192.168.1.2/24 dev net0
+
+test:
+  cmds:
+  - cmd: ip netns exec H0 ping -c 3 192.168.1.2
+  - cmd: ip netns exec H1 ping -c 3 192.168.1.1
